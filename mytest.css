@@ -1,0 +1,30 @@
+* {
+      margin  0px 0px 0px 0px;
+      padding 0px 0px 0px 0px;
+  }
+
+body, html {
+    pading: 3px 3px 3px 3px;
+    background-color: #d8dbe2;
+}
+
+div.main_page {
+    position: relative;
+    display: table;
+
+    width: 800px;
+
+    margin-bottom: 3px;
+    margin-left: auto;
+    margin-right: auto;
+
+    padding: 0px 0px 0px 0px;
+
+    border-width: 2px;
+    border-color: #212738;
+    border-style: solid;
+
+    background-color: white;
+
+    text-align: center;
+}
