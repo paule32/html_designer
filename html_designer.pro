@@ -8,5 +8,6 @@ SOURCES += main.c
 DISTFILES += \
     index.html \
     mytest.css \
-    onload.js
+    onload.js \
+    login.php
 

@@ -1,11 +1,63 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="de">
 <head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <title>Ein Test</title>
-<link   type="text/css"        rel="mytest.css" media="screen"/>
-<script type="text/javascript" src="onload.js"></script>
+<script type="text/javascript" src="./js/jquery-3.0.0.min.js"></script>
+<script type="text/javascript" src="./onload.js"></script>
+<link   type="text/css"        rel="stylesheet" href="./mytest.css"/>
 </head>
 <body>
+<div id="page_container">
+  <div id="page_header">
+    <b>HTML - Designer 1.0</b><br>
+    <i>(c) 2016 by Jens Kallup - Alle Rechte vorbehalten!</i>
+  </div>
+  <div id="page_menu">
+    <div id="menu_home"  class="menu_item"><b>Home</b></div>
+    <div id="menu_hilfe" class="menu_item"><b>Hilfe</b></div>
+    <div id="menu_login" class="menu_item"><b>Anmelden</b></div>
+  </div>
+  <div id="workplace">
+    <div>
+      <div id="left_menupanel">
+        <br>
+        <b><font style='color:yellow;'><center>HOME</center></font></b>
+        <hr>
+        <a href=""> &nbsp; <b>.:. NEUIGKEITEN .:.&nbsp;</b></a>
+      </div>
+      <div id="right_menupanel">
+        <br>
+        <center>
+        <b><font style="color:yellow;">TEAM</font></b>
+        <hr>
+        <b>.: Beitretten :.</b><br>
+        <b>.: Gründen :.</b>
+        </center>
+      </div>
+      <div id="middle_menupanel">
+        <div id="middle_menupanel_inner">
+          <b>Willkommen beim HTML-Designer 1.0</b><p>
+          Mit diesem Tool können Sie einfache Webseiten gestallten, ohne dabei langjährige
+          Programmierkenntnisse zu haben.<br>
+          Es ist natürlich von Vorteil, aber keine Voraussetzung.
+        </div>
+      </div>
+      <div id="login_page">
+        <div id="login_page_text"><b>
+          Bitte geben Sie Ihren Benutzername <br>
+          sowie das Kennwort ein:</b><p>
+          Benutzername: <input type="text" id="login_username" name="username"><br>
+          Kennung: &nbsp; &nbsp; &nbsp;&nbsp;&nbsp; &nbsp;<input type="password" id="login_password" name="password">
+        </div>
+        <div id="login_page_button">Anmelden</div>
+      </div>
+    </div>
+  </div>
 
+  <div id="menu_inhalt" class="menu_box menu_help">Inhalt</div>
+  <div id="menu_ueber"  class="menu_box menu_help">Über...</div>
+
+</div>
 </body>
 </html>
