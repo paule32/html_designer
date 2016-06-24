@@ -39,24 +39,32 @@ $(document).ready(function() {
             url: "login.php",
             data: dataString,
             cache: false,
-            success: function(html)
+            success: function(msg)
             {
-                alert(html);
+                if (msg === "info: ok.")
+                {
+                    alert("Daten wurden aufgenommen");
+                }
+                else {
+                    alert("Fehler auf Anfrage:\n" + msg);
+                    return;
+                }
             },
             error: function(data)
             {
-                alert("Es ist ein Fehler aufgetretten!");
+                console.log(data);
+                alert("Es ist ein Fehler aufgetretten!\n" + data);
                 return;
             }
         });     return;
     });
 
     $(".menu_item").mouseenter(function() {
-        $(this).attr('style', 'background-color', 'red');
+        $(this).attr('style', 'background-color:red');
         $(this).fadeOut(100);
         $(this).fadeIn (100);  togglemenu($(this));
     }).mouseleave(function() {
-        $(this).attr('style', 'background-color', '#00e200');
+        $(this).attr('style', 'background-color:#00e200');
         $(this).fadeOut(100);
         $(this).fadeIn (100);  togglemenu($(this));
     });
