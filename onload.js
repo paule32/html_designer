@@ -33,21 +33,17 @@ $(document).ready(function() {
     $("#login_page_button").click(function() {
         var UID = $("#login_username").val();
         var IDPASS = $("#login_password").val();
-        var dataString = 'user=' + UID + '&pass=' + IDPASS;
+        //var dataString = 'user=' + UID + '&pass=' + IDPASS;
         $.ajax({
             type: "POST",
             url: "login.php",
-            data: dataString,
+            data: {user: UID, pass: IDPASS},
             cache: false,
             success: function(msg)
             {
                 if (msg === "info: ok.")
                 {
                     alert("Daten wurden aufgenommen");
-                }
-                else {
-                    alert("Fehler auf Anfrage:\n" + msg);
-                    return;
                 }
             },
             error: function(data)
