@@ -152,6 +152,8 @@ a:active  { color:  black; background-color: white; text-decoration: overline un
 }
 #middle_menupanel_inner {
     position: relative;
+    border-width: 6px;
+    border-color: black;
     left: 10px;
     top: 10px;
 }

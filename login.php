@@ -6,9 +6,11 @@
 if (defined('STDIN')) {  // for testing
   $user=$argv[1];        // on console ...
   $pass=$argv[2];
+  $mode=$argv[3];
 } else {
   $user=$_POST['user'];  // browser parameter
   $pass=$_POST['pass'];
+  $mode=$_POST['mode'];
 }
 
 if (strlen(trim($user)) < 4) { echo "error: user has no name."; return; }
@@ -16,12 +18,11 @@ if (strlen(trim($pass)) < 4) { echo "error: user has no pass."; return; }
 
 date_default_timezone_set("UTC");
 
-$dbh = new PDO('sqlite:hd_data.db');
+$dbh = new PDO('sqlite:/var/www/html/hd_data.db');
 if (!$dbh) {
   echo "error: database not found/can not install.";
   return;
 }
-$dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 $res = $dbh->query("CREATE TABLE IF NOT EXISTS hd_users ("
 . "id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -29,27 +30,46 @@ $res = $dbh->query("CREATE TABLE IF NOT EXISTS hd_users ("
 . "pass VARCHAR(30),"
 . "flag CHAR(1))"
 );
-if (!$res) {
-  echo "error: can not create table: 'hd_users'";
-  return;
+
+$res = $dbh->prepare("SELECT user,pass FROM hd_users WHERE user='$user' AND pass='$pass';");
+$res->execute();
+$arr = $res->fetchAll();
+
+if ($mode == 0
+&& ($user != $arr[0][0])
+&& ($pass != $arr[0][1])) {
+echo "error: no data sel.";
+die();
 }
 
-$res = $dbh->prepare("SELECT user,pass FROM hd_users WHERE user=:user");
-$res->bindParam(":user",$user);
-$res->execute();
-$cro = $res->fetchAll();
 $cnt = 0;
-foreach ($cro as $row)
-$cnt = $cnt + 1;
+foreach ($arr as $row)
+$cnt = ++$cnt;
+
 $flag = 0;
+$fh = fopen("/var/www/html/hd_data.db","rb");
+if ($fh == null) {
+  echo "error: cant save data.";
+  die();
+} else {
+  fclose($fh);
+}
+
 if ($cnt < 1) {
-  $rea = $dbh->prepare("INSERT INTO hd_users (user,pass,flag) VALUES (:user,:pass,:flag)");
-  $rea->bindParam(":user", $user, PDO::PARAM_STR, 30);
-  $rea->bindParam(":pass", $pass, PDO::PARAM_STR, 30);
-  $rea->bindParam(":flag", $flag, PDO::PARAM_INT);
-  $rea->execute();
-  echo  "info: ok.";
-  return;
+  $res = $dbh->prepare("INSERT INTO hd_users (user,pass,flag) VALUES (:user,:pass,:flag);");
+  $res->bindParam(":user", $user, PDO::PARAM_STR, 30);
+  $res->bindParam(":pass", $pass, PDO::PARAM_STR, 30);
+  $res->bindParam(":flag", $flag, PDO::PARAM_INT);
+  $res->execute();
+  echo "info: ok. ins";
+  die();
+} else {
+    if ($mode == 0
+    && ($user == $arr[0][0])
+    && ($pass == $arr[0][1])) {
+    echo "info: ok. sel";
+    die();
+  }
 }
 
 echo "info: no data changed.";
