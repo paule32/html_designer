@@ -1,19 +1,48 @@
 $(document).ready(function() {
     console.log("page loaded");
 
-    var canvas = document.getElementById("drawCanvas");
+    var canvas;
     var context;
+    var ctx;
+    var ctx_offscreen;
 
     var gw = 940;
     var gh = 779;
     var p  = 10;
 
+    var BoundingBox;
+    var offsetX;
+    var offsetY;
+    var dragok = false;
+
     var mousePressed = false;
     var mouseX = 0;
     var mouseY = 0;
 
-    var canvasPosition = [];
+    var hdObjectPtr = [];
+
     var menuitem_flag = false;
+
+    function init_app()
+    {
+        canvas  = document.getElementById("drawCanvas");
+        ctx     = canvas.getContext("2d");
+        context = ctx;
+
+        canvas.onmousedown = objDown;
+        canvas.onmouseup = objUp;
+        canvas.onmousemove = objMove;
+
+        BoundingBox = canvas.getBoundingClientRect();
+        offsetX = BoundingBox.left;
+        offsetY = BoundingBox.top;
+
+        canvasPosition = {
+            x: $(canvas).offset().left,
+            y: $(canvas).offset().top
+        };
+    }
+
 
     function togglemenu (menu_item) {
         var item = menu_item.text();
@@ -38,12 +67,8 @@ $(document).ready(function() {
         });
     }
 
-    var drawBoard = function()
+    function drawBoardGrid_initial()
     {
-        canvas  = document.getElementById("drawCanvas");
-        ctx     = canvas.getContext("2d");
-        context = ctx;
-
         ctx.canvas.width  = gw;
         ctx.canvas.height = gh;
 
@@ -62,22 +87,28 @@ $(document).ready(function() {
         ctx.strokeStyle = "gray";
         ctx.stroke();
 
-        canvasPosition = {
-            x: $(canvas).offset().left,
-            y: $(canvas).offset().top
-        };
+        ctx_offscreen = ctx.getImageData(0,0,gw,gh);
+    }
 
+    function drawBoardGrid()
+    {
+        ctx.putImageData(ctx_offscreen,0,0);
+    }
 
-        var canvasObjects = new hdObjectClass();
+    var drawBoard = function()
+    {
+        init_app();
+        drawBoardGrid_initial();
 
-        canvasObjects.add("rect1", 200,200,200,200);
-        canvasObjects.add("rect2", 100,100,100,100);
+        hdptr = new hdObjectClass();
 
+        hdptr.add("rect1", 200,200,200,200);
+        hdptr.add("rect2", 100,100,100,100);
     };
 
     function writeMessage(canvas, message) {
       var context = canvas.getContext('2d');
-      //context.clearRect(0, 0, canvas.width, canvas.height);
+      context.clearRect(0, 0, canvas.width, 32);
       context.font = '18pt Calibri';
       context.fillStyle = 'black';
       context.fillText(message, 10, 25);
@@ -117,16 +148,30 @@ $(document).ready(function() {
                "height": "779px",
                "position": "absolute"
               });
+        /*
+        $("#middle_menupanel_inner").append(
+        "<div id='designerdiv' style='" +
+        "border-width: 6px;  " +
+        "border-color: black;" +
+        "background-color: rgba(230,230,230,0.8);" +
+        "left: 2px;" +
+        "top: 2px;" +
+        "width: 940px;" +
+        "height: 779px;" +
+        "position: absolute;'></div>").show();*/
 
         $("#page_container").height(1016);
         $("#workplace").height(820);
 
         drawBoard();
         canvas.addEventListener('mousemove', function(evt) {
-           var mousePos = getMousePos(canvas, evt);
-           var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
-           writeMessage(canvas, message);
+            var mousePos = getMousePos(canvas, evt);
+            var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
+            writeMessage(canvas, message);
          }, false);
+        canvas.addEventListener('mousedown', function(evt) {
+            objDown(evt);
+        });
     }
 
     $(".login_page").mouseenter(function() {
@@ -136,7 +181,7 @@ $(document).ready(function() {
 
     $("#login_page_button").click(function() {
         var UID = $("#login_username").val();
-        var IDPASS = $("#login_password").val();
+        var IDPASS = "gonzo"; $("#login_password").val();
         $.ajax({
             type: "POST",
             url: "login.php",
@@ -168,53 +213,172 @@ $(document).ready(function() {
         $(this).fadeIn (100);  togglemenu($(this));
     });
 
+    function clear_drawArea() {
+        ctx.clearRect(0, 0, gw, gh);
+    }
+
+    function update() {
+        clear_drawArea();
+        ctx.rect(0,0, gw,gh);
+        drawBoardGrid()
+        for (var idx = 0; idx < hdObjectPtr.length; idx++) {
+            var r =  hdObjectPtr[idx];
+            r._self.drawObject(r._x, r._y, r._width, r._height);
+            if (r._isdrag)
+            r._self.drawMovers();
+        }
+    }
+
+    function objDown(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // get the current mouse position
+        var mx = parseInt(e.clientX - offsetX);
+        var my = parseInt(e.clientY - offsetY);
+
+        dragok = false;
+        for (var idx = 0; idx < hdObjectPtr.length; idx++) {
+            var r = hdObjectPtr[idx];
+
+            if (mx > r._x && mx < r._x + r._width
+            &&  my > r._y && my < r._y + r._height) {
+                dragok = true;
+                r._isdrag = true;
+                break;
+            }
+        }
+
+        // save the current mouse position
+        startX = mx;
+        startY = my;
+    }
+
+    function objUp(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        dragok = false;
+        for (var idx = 0; idx < hdObjectPtr.length; idx++) {
+            hdObjectPtr[idx]._isdrag = false;
+        }
+    }
+
+    function objMove(e)
+    {
+        if (dragok) {
+
+            // tell the browser we're handling this mouse event
+            e.preventDefault();
+            e.stopPropagation();
+
+            // get the current mouse position
+            var mx = parseInt(e.clientX - offsetX);
+            var my = parseInt(e.clientY - offsetY);
+
+            // calculate the distance the mouse has moved
+            // since the last mousemove
+            var dx = mx - startX;
+            var dy = my - startY;
+
+            // move each rect that isDragging
+            // by the distance the mouse has moved
+            // since the last mousemove
+            for (var i = 0; i < hdObjectPtr.length; i++) {
+                var r = hdObjectPtr[i];
+                if (r._isdrag) {
+                    r._self._corners[0]._x2;
+                    r._self._corners[0]._y2;
+                    r._self._corners[0]._w2;
+                    r._self._corners[0]._h2;
+
+                    r._x += dx;
+                    r._y += dy;
+                }
+            }
+
+            // redraw the scene with the new rect positions
+            update();
+
+            // reset the starting mouse position for the next mousemove
+            startX = mx;
+            startY = my;
+        }
+    }
 
     // ---------------------------------
     // Object class for the desinger ...
     // ---------------------------------
     var hdObjectClass  = function() {};
     hdObjectClass.prototype = {
+        obj: null, // temp ptr
         _x: 0,
         _y: 0,
         _width: 0,
         _height: 0,
         _name: "0_0",
+        _html: "",
+        _isdrag: false,
+        _self: this,
 
-        _hdObjects: [],
+        _corners: [
+            { _x2: 0, _y2:0, _w2: 0, _h2: 0 },
+            { _x2: 0, _y2:0, _w2: 0, _h2: 0 },
+            { _x2: 0, _y2:0, _w2: 0, _h2: 0 },
+            { _x2: 0, _y2:0, _w2: 0, _h2: 0 },
+        ],
 
         add: function(name,x,y,width,height) {
-            obj = new hdObject(this,name,x,y,width,height);
-            this._hdObjects.push(obj);
+            obj = new hdObjectClass();
+            obj._x = x;
+            obj._y = y;
+            obj._width = width;
+            obj._height = height;
+            obj._name = name;
+            obj._isdrag = false;
+            obj._self = this;
 
-            console.log(this._hdObjects[0]._name);
+            obj._html = "<div id='obj_" + obj._name + "'></div>";
+            $("#noDisplayArea").append(obj._html);
 
-
+            this.drawObject(x,y,width,height);
+            hdObjectPtr.push(obj);
         },
-    };
-    function hdObject(obj, name, x, y, width, height) {
-        obj._x = x;
-        obj._y = y;
-        obj._width = width;
-        obj._height = height;
-        obj._name = name;
+        drawObject: function (x, y, width, height) {
+            context.beginPath();
+            context.rect(x, y, width, height);
+            context.fillStyle = 'yellow';
+            context.fill();
+            context.lineWidth = 7;
+            context.strokeStyle = 'black';
+            context.stroke();
 
-        context.beginPath();
-        context.rect(x, y, width, height);
-        context.fillStyle = 'yellow';
-        context.fill();
-        context.lineWidth = 7;
-        context.strokeStyle = 'black';
-        context.stroke();
-    }
+            _corners = [
+                { _x2: x   -10, _y2: y    -10, _w2: width, _h2: height },
+                { _x2: x   -10, _y2: y+height, _w2: width, _h2: height },
+                { _x2: x+width, _y2: y    -10, _w2: width, _h2: height },
+                { _x2: x+width, _y2: y+height, _w2: width, _h2: height }
+            ];
+        },
+        drawMovers: function(o) {
+            this.drawActiveMovers(o);
+        },
+        drawActiveMovers: function(o) {
+            context.beginPath();
 
-    $(hdObjectsArray[0]).on("click", function(e, mouse) {
-        var mouse = {
-            x: e.pageX - canvasPosition.x,
-            y: e.pageY - canvasPosition.y
+            for (var i=0; i < 4; i++)
+            context.rect(
+                _corners[i]._x2,
+                _corners[i]._y2, 10, 10
+            );
+
+            context.fillStyle = 'blue';
+            context.fill();
+            context.lineWidth = 1;
+
+            context.strokeStyle = 'red';
+            context.stroke();
+
         }
-
-        //console.log(hdObjectsArray[0]._name);
-
-    });
-
+    };
 });
