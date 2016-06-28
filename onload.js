@@ -18,8 +18,10 @@ $(document).ready(function() {
     var mousePressed = false;
     var mouseX = 0;
     var mouseY = 0;
+    var mouseInCorner = 0;
 
     var hdObjectPtr = [];
+    var mousePos;
 
     var menuitem_flag = false;
 
@@ -165,7 +167,7 @@ $(document).ready(function() {
 
         drawBoard();
         canvas.addEventListener('mousemove', function(evt) {
-            var mousePos = getMousePos(canvas, evt);
+            mousePos = getMousePos(canvas, evt);
             var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
             writeMessage(canvas, message);
          }, false);
@@ -224,6 +226,11 @@ $(document).ready(function() {
         for (var idx = 0; idx < hdObjectPtr.length; idx++) {
             var r =  hdObjectPtr[idx];
             r._self.drawObject(r._x, r._y, r._width, r._height);
+
+            if (mouseInCorner == 1) {
+                r.drawMoverRect(r);
+            }
+
             if (r._isdrag)
             r._self.drawMovers();
         }
@@ -240,6 +247,21 @@ $(document).ready(function() {
         dragok = false;
         for (var idx = 0; idx < hdObjectPtr.length; idx++) {
             var r = hdObjectPtr[idx];
+
+            //{ _x2: x   -10, _y2: y    -10, _w2: width, _h2: height },
+            //{ _x2: x   -10, _y2: y+height, _w2: width, _h2: height },
+            //{ _x2: x+width, _y2: y    -10, _w2: width, _h2: height },
+            //{ _x2: x+width, _y2: y+height, _w2: width, _h2: height }
+
+            if (mx > r._x - 10 && mx < r._x + 10
+            && (my > r._y - 10 && my < r._y + 10))
+            {
+                mouseInCorner = 1;
+                dragok = true;
+                r._isdrag = true;
+                break;
+            }
+            else
 
             if (mx > r._x && mx < r._x + r._width
             &&  my > r._y && my < r._y + r._height) {
@@ -287,10 +309,11 @@ $(document).ready(function() {
             for (var i = 0; i < hdObjectPtr.length; i++) {
                 var r = hdObjectPtr[i];
                 if (r._isdrag) {
+                    /*
                     r._self._corners[0]._x2;
                     r._self._corners[0]._y2;
                     r._self._corners[0]._w2;
-                    r._self._corners[0]._h2;
+                    r._self._corners[0]._h2;*/
 
                     r._x += dx;
                     r._y += dy;
@@ -359,6 +382,27 @@ $(document).ready(function() {
                 { _x2: x+width, _y2: y    -10, _w2: width, _h2: height },
                 { _x2: x+width, _y2: y+height, _w2: width, _h2: height }
             ];
+        },
+        drawMoverRect: function(r) {
+            context.beginPath();
+
+            var xp = mousePos.x;
+            var yp = mousePos.y;
+
+            var xn = r._x - (xp + r._x);
+            var yn = r._y - (yp - r._y);
+
+            var hn = (yp - r._y) + r._height;
+
+
+            var wn = r._width  - xn;
+
+
+            context.rect(-xn,yn,wn,hn);
+            context.lineWidth = 2;
+
+            context.strokeStyle = 'red';
+            context.stroke();
         },
         drawMovers: function(o) {
             this.drawActiveMovers(o);
