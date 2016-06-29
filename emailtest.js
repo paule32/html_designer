@@ -1,7 +1,7 @@
 $(document).ready(function() {
     console.log("page loaded");
 
-    var myemail = "jkallup@web.de";
+    var myemail = "'jkallup@web.de'";
 
     // template class with email's
     // can be filled in application
@@ -16,8 +16,8 @@ $(document).ready(function() {
 
     $("#send_email").click(function(e) {
         var dataString =
-        "emailto='"   + emails[0].email_to  + "'" +
-        "&emailfrom='jkallup@web.de'"              +
+        "emailto="     + emails[0].email_to  +
+        "&emailfrom="  + myemail +
         "&emailbody='" + emails[0].email_data_body + "'";
 
         $.ajax({
@@ -27,8 +27,6 @@ $(document).ready(function() {
             success: function(respond_text) {
                 alert(respond_text);
                 $("#send_email").append(respond_text);
-
-                alert(dataString);
                 return true;
             },
             error: function() {
