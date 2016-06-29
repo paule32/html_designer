@@ -18,7 +18,7 @@ if (strlen(trim($pass)) < 4) { echo "error: user has no pass."; return; }
 
 date_default_timezone_set("UTC");
 
-$dbh = new PDO('sqlite:/var/www/html/hd_data.db');
+$dbh = new PDO('sqlite:/var/www/kallup.net/html/andreas/hd_data.db');
 if (!$dbh) {
   echo "error: database not found/can not install.";
   return;

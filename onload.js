@@ -16,6 +16,8 @@ $(document).ready(function() {
     var dragok = false;
 
     var mousePressed = false;
+    var startX = 0;
+    var startY = 0;
     var mouseX = 0;
     var mouseY = 0;
     var mouseInCorner = 0;
@@ -168,7 +170,8 @@ $(document).ready(function() {
         drawBoard();
         canvas.addEventListener('mousemove', function(evt) {
             mousePos = getMousePos(canvas, evt);
-            var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
+            //var message = 'Mouse position: ' + mousePos.x + ',' + mousePos.y;
+            var message = "Mouse: " + (mousePos.x) + ", mX: " + (mouseX);
             writeMessage(canvas, message);
          }, false);
         canvas.addEventListener('mousedown', function(evt) {
@@ -184,6 +187,12 @@ $(document).ready(function() {
     $("#login_page_button").click(function() {
         var UID = $("#login_username").val();
         var IDPASS = "gonzo"; $("#login_password").val();
+
+        prepareWorkPlace(UID);
+        return;
+
+
+
         $.ajax({
             type: "POST",
             url: "login.php",
@@ -257,6 +266,8 @@ $(document).ready(function() {
             && (my > r._y - 10 && my < r._y + 10))
             {
                 mouseInCorner = 1;
+                mouseX = mx;
+                mouseY = my;
                 dragok = true;
                 r._isdrag = true;
                 break;
@@ -309,12 +320,6 @@ $(document).ready(function() {
             for (var i = 0; i < hdObjectPtr.length; i++) {
                 var r = hdObjectPtr[i];
                 if (r._isdrag) {
-                    /*
-                    r._self._corners[0]._x2;
-                    r._self._corners[0]._y2;
-                    r._self._corners[0]._w2;
-                    r._self._corners[0]._h2;*/
-
                     r._x += dx;
                     r._y += dy;
                 }
@@ -389,6 +394,24 @@ $(document).ready(function() {
             var xp = mousePos.x;
             var yp = mousePos.y;
 
+            var ox = r._x;
+            var oy = r._y;
+
+            var xd, wn;
+            var yd, hn;
+
+            if (mousePos.x < mouseX)
+            {
+                xd = mouseX - mousePos.x;
+                r._x     = r._width + xd;
+                r._width = r._width + xd; //mouseX + (r._x - mouseX);
+            }
+
+            xp = r._x;
+
+            hn = r._height;
+
+            /*
             var xn = r._x - (xp + r._x);
             var yn = r._y - (yp - r._y);
 
@@ -396,9 +419,9 @@ $(document).ready(function() {
 
 
             var wn = r._width  - xn;
+*/
 
-
-            context.rect(-xn,yn,wn,hn);
+            context.rect(xp,yp,wn,hn);
             context.lineWidth = 2;
 
             context.strokeStyle = 'red';

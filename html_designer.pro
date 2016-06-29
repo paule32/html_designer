@@ -9,5 +9,9 @@ DISTFILES += \
     index.html \
     mytest.css \
     onload.js \
-    login.php
+    login.php \
+    emailtest.js \
+    emailtest.css \
+    emailtest.php \
+    emailtest.html
 
